@@ -32,6 +32,15 @@ export default class PropertyCtrl {
     }
   }
 
+  static async getAllProp(req, res, next) {
+    try {
+      const prop = await Property.find({});
+      res.json(prop);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async getPropById(req, res, next) {
     try {
       const prop = await Property.findById(req.params.id).populate(
@@ -45,6 +54,20 @@ export default class PropertyCtrl {
     }
   }
 
+  static async getPropUser(req, res, next) {
+  try {
+    const userId = req.user._id; 
+
+    const properties = await Property.find({ owner: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json(properties);
+  } catch (err) {
+    console.error("User Properties Error:", err);
+    next(err);
+  }
+}
+
+
   static async updateProp(req, res, next) {
     try {
       const prop = await Property.findById(req.params.id);
@@ -55,13 +78,16 @@ export default class PropertyCtrl {
         typeof prop.owner === "object"
           ? prop.owner._id.toString()
           : prop.owner.toString();
-      if (ownerId !== req.user.id && !req.user.isAdmin) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      const loggedInUserId = req.user._id.toString();
+
+      if (ownerId !== loggedInUserId && req.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Not your property" });
       }
 
-      const updatedData = {
-        ...req.body,
-      };
+      const updatedData = { ...req.body };
 
       if (req.files && req.files.length > 0) {
         updatedData.images = req.files.map((file) => file.path);

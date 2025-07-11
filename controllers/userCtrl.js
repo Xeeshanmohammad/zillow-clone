@@ -53,7 +53,7 @@ export default class UserCtrl {
         msg: "Successsfull login",
         _id: user._id,
         email: user.email,
-        isAdmin: user.isAdmin,
+        role: user.role,
         token,
       });
     } catch (err) {

@@ -12,14 +12,18 @@ router.post(
   PropertyCtrl.createProp
 );
 router.get("/all-list", PropertyCtrl.allPropList);
+router.get("/getAllProp", PropertyCtrl.getAllProp);
+router.get("/my-properties", authentic, PropertyCtrl.getPropUser);
 router.get("/:id", PropertyCtrl.getPropById);
 router.post("/:id/rating", authentic, PropertyCtrl.ratingProp);
+
 router.put(
   "/:id",
   authentic,
   upload.array("images", 5),
   PropertyCtrl.updateProp
 );
-router.delete("/:id", authentic, adminOnly, PropertyCtrl.deleteProp);
+
+router.delete("/:id", authentic, PropertyCtrl.deleteProp);
 
 export default router;
