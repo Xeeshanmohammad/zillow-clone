@@ -2,17 +2,22 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import RateProperty from "../components/RatingProp";
+import ShimmerCard from "../components/ShimmerCard";
 
 const Home = () => {
   const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   const fetchProperties = () => {
+    setLoading(true);
     axios
       .get("https://zillow-clone-0p80.onrender.com/api/properties/getAllProp")
       .then((res) => setProperties(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   const handleView = async (id) => {
@@ -38,7 +43,7 @@ const Home = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchProperties(); // refresh updated rating
+      fetchProperties();
     } catch (err) {
       console.error("Rating failed:", err);
       alert("Failed to submit rating.");
@@ -75,49 +80,53 @@ const Home = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          {properties?.map((property) => (
-            <div
-              key={property._id}
-              className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition"
-            >
-              <img
-                src={
-                  property.images?.[0] ||
-                  "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&q=60&w=1000"
-                }
-                alt={property.title}
-                className="w-full h-60 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-1">
-                  {property.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-1">
-                  {property.address}
-                </p>
-                <p className="text-green-700 font-semibold mb-1">
-                  AED {property?.price?.toLocaleString()}
-                </p>
-
-                {property.averageRating ? (
-                  <RateProperty
-                    value={property.averageRating}
-                    readOnly={!token}
-                    onChange={(val) => handleRate(property._id, val)}
-                  />
-                ) : (
-                  <p className="text-xs text-gray-400 mb-2">No ratings yet</p>
-                )}
-
-                <Link
-                  onClick={() => handleView(property._id)}
-                  className="inline-block text-sm text-blue-600 font-medium hover:underline"
+          {loading
+            ? Array.from({ length: 10 }).map((_, i) => <ShimmerCard key={i} />)
+            : properties?.map((property) => (
+                <div
+                  key={property._id}
+                  className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition"
                 >
-                  View Details →
-                </Link>
-              </div>
-            </div>
-          ))}
+                  <img
+                    src={
+                      property.images?.[0] ||
+                      "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&q=60&w=1000"
+                    }
+                    alt={property.title}
+                    className="w-full h-60 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">
+                      {property.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-1">
+                      {property.address}
+                    </p>
+                    <p className="text-green-700 font-semibold mb-1">
+                      AED {property?.price?.toLocaleString()}
+                    </p>
+
+                    {property.averageRating ? (
+                      <RateProperty
+                        value={property.averageRating}
+                        readOnly={!token}
+                        onChange={(val) => handleRate(property._id, val)}
+                      />
+                    ) : (
+                      <p className="text-xs text-gray-400 mb-2">
+                        No ratings yet
+                      </p>
+                    )}
+
+                    <Link
+                      onClick={() => handleView(property._id)}
+                      className="inline-block text-sm text-blue-600 font-medium hover:underline"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
+                </div>
+              ))}
         </div>
       </main>
 
