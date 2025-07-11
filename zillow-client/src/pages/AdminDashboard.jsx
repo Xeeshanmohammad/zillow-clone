@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import RateProperty from "../components/RatingProp"; 
+import RateProperty from "../components/RatingProp";
+import ShimmerCard from "../components/ShimmerCard";
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   const fetchProperties = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(
         "https://zillow-clone-0p80.onrender.com/api/properties/all-list",
         {
@@ -21,6 +24,8 @@ const AdminDashboard = () => {
       setProperties(res.data);
     } catch (err) {
       setError("Failed to fetch properties");
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -29,9 +34,7 @@ const AdminDashboard = () => {
       const res = await axios.get(
         "https://zillow-clone-0p80.onrender.com/api/users/profile",
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       setProfile(res.data);
@@ -41,9 +44,7 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirm = window.confirm(
-      "Are you sure you want to delete this property?"
-    );
+    const confirm = window.confirm("Are you sure you want to delete this property?");
     if (!confirm) return;
     try {
       await axios.delete(
@@ -117,55 +118,56 @@ const AdminDashboard = () => {
       {error && <div className="text-red-500 mb-4">{error}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-        {properties.map((prop) => (
-          <div
-            key={prop._id}
-            className="border-none rounded-xl p-4 shadow-xl hover:shadow-2xl transition-shadow duration-300 bg-white"
-          >
-            <img
-              src={
-                prop?.images?.[0] ||
-                "https://images.unsplash.com/photo-1582407947304-fd86f028f716?fm=jpg&q=60&w=3000"
-              }
-              alt={prop.title}
-              className="w-full h-60 object-cover rounded-md mb-3"
-            />
-            <h2 className="text-lg font-semibold">{prop.title}</h2>
-            <p className="text-sm text-gray-600">{prop.address}</p>
-            <p className="text-purple-700 font-bold mb-1">AED {prop.price}</p>
-            {prop.averageRating ? (
-              <div className="mb-2">
-                <RateProperty
-                  value={Math.round(prop.averageRating)}
-                  readOnly={true}
+        {loading
+          ? Array.from({ length: 10 }).map((_, i) => <ShimmerCard key={i} />)
+          : properties.map((prop) => (
+              <div
+                key={prop._id}
+                className="border-none rounded-xl p-4 shadow-xl hover:shadow-2xl transition-shadow duration-300 bg-white"
+              >
+                <img
+                  src={
+                    prop?.images?.[0] ||
+                    "https://images.unsplash.com/photo-1582407947304-fd86f028f716?fm=jpg&q=60&w=3000"
+                  }
+                  alt={prop.title}
+                  className="w-full h-60 object-cover rounded-md mb-3"
                 />
+                <h2 className="text-lg font-semibold">{prop.title}</h2>
+                <p className="text-sm text-gray-600">{prop.address}</p>
+                <p className="text-purple-700 font-bold mb-1">AED {prop.price}</p>
+                {prop.averageRating ? (
+                  <div className="mb-2">
+                    <RateProperty
+                      value={Math.round(prop.averageRating)}
+                      readOnly={true}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 mb-2">No ratings yet</p>
+                )}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => handleView(prop._id)}
+                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded cursor-pointer"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleEdit(prop)}
+                    className="px-3 py-1 text-sm bg-yellow-500 text-white rounded cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(prop._id)}
+                    className="px-3 py-1 text-sm bg-red-600 text-white rounded cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            ) : (
-              <p className="text-xs text-gray-400 mb-2">No ratings yet</p>
-            )}
-
-            <div className="mt-2 flex gap-2">
-              <button
-                onClick={() => handleView(prop._id)}
-                className="px-3 py-1 text-sm bg-blue-500 text-white rounded cursor-pointer"
-              >
-                View
-              </button>
-              <button
-                onClick={() => handleEdit(prop)}
-                className="px-3 py-1 text-sm bg-yellow-500 text-white rounded cursor-pointer"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(prop._id)}
-                className="px-3 py-1 text-sm bg-red-600 text-white rounded cursor-pointer"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+            ))}
       </div>
     </div>
   );
