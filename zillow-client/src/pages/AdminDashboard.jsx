@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import RateProperty from "../components/RatingProp"; 
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -8,9 +9,9 @@ const AdminDashboard = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
   const fetchProperties = async () => {
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.get(
         "https://zillow-clone-0p80.onrender.com/api/properties/all-list",
         {
@@ -45,7 +46,6 @@ const AdminDashboard = () => {
     );
     if (!confirm) return;
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(
         `https://zillow-clone-0p80.onrender.com/api/properties/${id}`,
         {
@@ -64,7 +64,6 @@ const AdminDashboard = () => {
 
   const handleView = async (id) => {
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.get(
         `https://zillow-clone-0p80.onrender.com/api/properties/${id}`,
         {
@@ -125,16 +124,27 @@ const AdminDashboard = () => {
           >
             <img
               src={
-                prop.images?.[0] ||
-                "https://images.unsplash.com/photo-1582407947304-fd86f028f716?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cmVhbCUyMGVzdGF0ZXxlbnwwfHwwfHx8MA%3D%3D"
+                prop?.images?.[0] ||
+                "https://images.unsplash.com/photo-1582407947304-fd86f028f716?fm=jpg&q=60&w=3000"
               }
               alt={prop.title}
-              className="w-full h-60 object-content rounded-md mb-3"
+              className="w-full h-60 object-cover rounded-md mb-3"
             />
             <h2 className="text-lg font-semibold">{prop.title}</h2>
             <p className="text-sm text-gray-600">{prop.address}</p>
-            <p className="text-purple-700 font-bold">AED {prop.price}</p>
-            <div className="mt-4 flex gap-2">
+            <p className="text-purple-700 font-bold mb-1">AED {prop.price}</p>
+            {prop.averageRating ? (
+              <div className="mb-2">
+                <RateProperty
+                  value={Math.round(prop.averageRating)}
+                  readOnly={true}
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mb-2">No ratings yet</p>
+            )}
+
+            <div className="mt-2 flex gap-2">
               <button
                 onClick={() => handleView(prop._id)}
                 className="px-3 py-1 text-sm bg-blue-500 text-white rounded cursor-pointer"
