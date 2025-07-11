@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { LogOut, Home, Edit2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import RateProperty from "../components/RatingProp";
 
 const UserDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -144,6 +145,17 @@ const UserDashboard = () => {
             <p className="text-gray-800 font-bold mb-2">
               AED {prop.price.toLocaleString()}
             </p>
+
+            {prop.averageRating ? (
+              <div className="mb-2">
+                <RateProperty
+                  value={Math.round(prop.averageRating)}
+                  readOnly={true}
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mb-2">No ratings yet</p>
+            )}
 
             <div className="flex flex-col gap-2">
               <button
